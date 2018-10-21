@@ -23,9 +23,9 @@ player_y: .db 0
 
 Start:  lda #%00001000  ; NMI off, PPU master, sprite 8x8, bg $0000, sprite $0000, ppu inc 0, nametable $2000
         sta $2000
-        lda #%00011110
-        sta $2001
-
+        lda #0
+        sta $2001       ; disable screen rendering
+        
 ; Fill In Background
 ; Not all emus fill tile with 0
         lda #$20
@@ -45,9 +45,6 @@ Start:  lda #%00001000  ; NMI off, PPU master, sprite 8x8, bg $0000, sprite $000
         cpy #3
         bne .FillLoop
 
-wait_blank:
-        lda $2002       ; ?
-        bpl wait_blank
         lda #$3f
         sta $2006       ; 2006 is TARGET BASE vram addr via storing to 2007
         lda #0
@@ -74,6 +71,10 @@ pal_loop:
         cpx #64
         bcc .color_bg_loop
 
+; enable screen rendering
+        lda #%00011110
+        sta $2001
+
 loop:
         lda $2002
         bpl loop
@@ -81,23 +82,118 @@ loop:
         jmp loop
 
 DrawLoop:
-        
-        ; wait for vblank
         ; draw all sprites:
         ldx #0
         stx $2003
         stx $2003       ; set 2004 target to spr-ram 0000 (set by ppu flag to either 0000 or 1000)
 
         inc player_y
+        inc player_x
+        
         lda player_y
         sta $2004       ; y-addr
         lda #0
         sta $2004       ; tile no
         lda #%00000000
         sta $2004       ; color bit 
-        inc player_x
         lda player_x
         sta $2004       ; x-pos
+
+        lda player_y 
+        sta $2004
+        lda #1
+        sta $2004
+        lda #0
+        sta $2004
+        lda player_x
+        clc 
+        adc #8
+        sta $2004
+
+        lda player_y 
+        sta $2004
+        lda #2
+        sta $2004
+        lda #0
+        sta $2004
+        lda player_x
+        clc 
+        adc #16
+        sta $2004
+
+        lda player_y
+        clc 
+        adc #8 
+        sta $2004
+        lda #$10
+        sta $2004
+        lda #0
+        sta $2004
+        lda player_x
+        sta $2004
+
+        lda player_y
+        clc 
+        adc #8 
+        sta $2004
+        lda #$11
+        sta $2004
+        lda #0
+        sta $2004
+        lda player_x
+        clc
+        adc #8
+        sta $2004
+
+        lda player_y
+        clc 
+        adc #8 
+        sta $2004
+        lda #$12
+        sta $2004
+        lda #0
+        sta $2004
+        lda player_x
+        clc
+        adc #16
+        sta $2004
+
+        lda player_y
+        clc 
+        adc #16 
+        sta $2004
+        lda #$20
+        sta $2004
+        lda #0
+        sta $2004
+        lda player_x
+        sta $2004
+
+        lda player_y
+        clc 
+        adc #16 
+        sta $2004
+        lda #$21
+        sta $2004
+        lda #0
+        sta $2004
+        lda player_x
+        clc 
+        adc #8
+        sta $2004
+
+        lda player_y
+        clc 
+        adc #16 
+        sta $2004
+        lda #$22
+        sta $2004
+        lda #0
+        sta $2004
+        lda player_x
+        clc 
+        adc #16
+        sta $2004
         
         rts 
 
