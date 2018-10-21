@@ -1,5 +1,4 @@
 ; nestest.asm
-FillLoop                         = $8037
 Start                            = $8000
 player_x                         = $0000
 player_y                         = $0001

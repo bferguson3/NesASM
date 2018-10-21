@@ -48,15 +48,28 @@ pal_loop:
 ; Fill In Background
         lda #$20
         sta $2006
-        lda #$a0        ; skip 64 lines - 2 row.
+        lda #$00        ; skip 64 lines - 2 row.
         sta $2006
         ldx #0
-        ldy #1
-FillLoop:
+        ldy #0
+.FillLoop:
         sty $2007
         inx
-        cpx #200
-        bne FillLoop    ; fills screen with tile #20
+        cpx #255
+        bne .FillLoop    ; fills screen with tile #20
+
+;        lda #$22
+;        sta $2006
+;        lda #$20        ; skip 64 lines - 2 row.
+;        sta $2006
+;        ldx #0
+;        ldy #2
+;.FillLoop2:
+;        sty $2007
+;        inx
+;        cpx #200
+;        bne .FillLoop2    ; fills screen with tile #20
+
 
         lda #$23
         sta $2006
@@ -67,7 +80,7 @@ FillLoop:
 .color_bg_loop:
         sta $2007
         inx 
-        cpx #200
+        cpx #64
         bcc .color_bg_loop
 
 loop:
