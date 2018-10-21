@@ -1,0 +1,8 @@
+; nestest.asm
+FillLoop                         = $80C7
+Start                            = $8000
+player_x                         = $0000
+waitblank                        = $80B4
+DrawLoop                         = $80D5
+loadpal                          = $8014
+loop                             = $80CF
