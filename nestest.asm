@@ -46,6 +46,7 @@ pal_loop:
 
 
 ; Fill In Background
+; Not all emus fill tile with 0
         lda #$20
         sta $2006
         lda #$00        ; skip 64 lines - 2 row.
@@ -58,17 +59,29 @@ pal_loop:
         cpx #255
         bne .FillLoop    ; fills screen with tile #20
 
-;        lda #$22
-;        sta $2006
-;        lda #$20        ; skip 64 lines - 2 row.
-;        sta $2006
-;        ldx #0
-;        ldy #2
-;.FillLoop2:
-;        sty $2007
-;        inx
-;        cpx #200
-;        bne .FillLoop2    ; fills screen with tile #20
+        lda #$21
+        sta $2006
+        lda #$20        ; skip 64 lines - 2 row.
+        sta $2006
+        ldx #0
+        ldy #2
+.FillLoop2:
+        sty $2007
+        inx
+        cpx #200
+        bne .FillLoop2    ; fills screen with tile #20
+
+        lda #$22
+        sta $2006
+        lda #$20        ; skip 64 lines - 2 row.
+        sta $2006
+        ldx #0
+        ldy #0
+.FillLoop3:
+        sty $2007
+        inx
+        cpx #255
+        bne .FillLoop3    ; fills screen with tile #20
 
 
         lda #$23
