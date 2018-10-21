@@ -17,100 +17,58 @@
 
  .org $0000
 player_x: .db 0 
+player_y: .db 0
 
  .org $8000 ; goes in 8k.
 
-Start:  lda #%00000000  ; NMI off, PPU master, sprite 8x8, bg $0000, sprite $0000, ppu inc 0, nametable $2000
+Start:  lda #%00001000  ; NMI off, PPU master, sprite 8x8, bg $0000, sprite $0000, ppu inc 0, nametable $2000
         sta $2000
         lda #%00011110
         sta $2001
-
-        lda #$3f
-        sta $2006       ; 2006 is TARGET BASE vram addr via storing to 2007
-        lda #0
-        sta $2006       ; set to palette addr of 3f00
-
-loadpal:
-        lda #$0f        ;Universal background color
-        sta $2007       ;3f00
-        lda #$02        ;bg palette 0: 3f01-03
-        sta $2007       ;01
-        lda #$03
-        sta $2007       ;02
-        lda #$04
-        sta $2007       ;03
-        lda #$01        
-        sta $2007       ;04 - skip
-        lda #$06        ; BG Palette 1: 3f05-07
-        sta $2007       ;05
-        lda #$07
-        sta $2007       ;06
-        lda #$08
-        sta $2007       ;07
-        lda #$01     
-        sta $2007       ;3f08 - skip
-        lda #$08        ; BG Palette 2 - 3f09-3f0b
-        sta $2007       ;09
-        lda #$09
-        sta $2007       ;0a
-        lda #$0A
-        sta $2007       ;0b
-        lda #$01
-        sta $2007       ;0c - skip
-        lda #$0B        ; BG Palette 3 - 3f0d-3f0f
-        sta $2007       ;0d
-        lda #$0C
-        sta $2007       ;0e
-        lda #$0D        
-        sta $2007       ;0f
-        lda #$01    
-        sta $2007       ;3f10 - mirror of 3f00
-        lda #$0D        ; Sprite Palette 0 - 3f11-13
-        sta $2007       ;11
-        lda #$08
-        sta $2007       ;12
-        lda #$2B
-        sta $2007       ;13
-        lda #$01
-        sta $2007       ;14-skip
-        lda #$05        ; Sprite Palette 1 - 3f15-17
-        sta $2007       ;15
-        lda #$06
-        sta $2007       ;16
-        lda #$07
-        sta $2007       ;17
-        lda #$01
-        sta $2007       ;18-skip
-        lda #$08        ; Sprite Palette 2 - 3f19-1b
-        sta $2007       ;19
-        lda #$09
-        sta $2007       ;1a
-        lda #$0A
-        sta $2007       ;1b
-        lda #$01
-        sta $2007       ;1c - skip
-        lda #$0B        ; Sprite Palette 3 - 3f1d-1f
-        sta $2007       ;1d
-        lda #$0C
-        sta $2007       ;1e
-        lda #$0D
-        sta $2007       ;1f
 
 waitblank:
         lda $2002
         bpl waitblank   ; waits until v is blanked before gfx code
 
+        lda $2002       ; ?
+        lda #$3f
+        sta $2006       ; 2006 is TARGET BASE vram addr via storing to 2007
+        lda #0
+        sta $2006       ; set to palette addr of 3f00
+
+        ldx #0
+pal_loop:
+        lda PalData,x
+        sta $2007
+        inx 
+        cpx #32
+        bne pal_loop
+
+
+; Fill In Background
         lda #$20
         sta $2006
         lda #$a0        ; skip 64 lines - 2 row.
         sta $2006
         ldx #0
-        ldy #20
+        ldy #1
 FillLoop:
         sty $2007
         inx
-        cpx #100
-        bcc FillLoop    ; fills screen with tile #20
+        cpx #200
+        bne FillLoop    ; fills screen with tile #20
+
+        lda #$23
+        sta $2006
+        lda #$c0
+        sta $2006
+        ldx #0
+        lda #%00011011
+.color_bg_loop:
+        sta $2007
+        inx 
+        cpx #200
+        bcc .color_bg_loop
 
 loop:
         jsr DrawLoop
@@ -124,12 +82,13 @@ DrawLoop:
         ldx #0
         stx $2003
         stx $2003       ; set 2004 target to spr-ram 0000 (set by ppu flag to either 0000 or 1000)
- 
-        lda #$30
+
+        inc player_y
+        lda player_y
         sta $2004       ; y-addr
         lda #0
         sta $2004       ; tile no
-        lda #%00000001
+        lda #%00000000
         sta $2004       ; color bit 
         inc player_x
         lda player_x
@@ -137,7 +96,11 @@ DrawLoop:
         
         rts 
 
+PalData: 
+ .incbin "output.pal"
+
  .bank 1 
+
  .org $fffa ; location of interrupt
  .dw 0       ; nmi int loc ? 
  .dw Start   ; go to reset 
