@@ -2,8 +2,8 @@
 Start                            = $8000
 player_x                         = $0000
 player_y                         = $0001
-waitblank                        = $800A
-PalData                          = $8085
-pal_loop                         = $801E
-DrawLoop                         = $805B
-loop                             = $8055
+PalData                          = $808B
+pal_loop                         = $803A
+DrawLoop                         = $8066
+wait_blank                       = $8029
+loop                             = $805B

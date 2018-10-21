@@ -26,11 +26,28 @@ Start:  lda #%00001000  ; NMI off, PPU master, sprite 8x8, bg $0000, sprite $000
         lda #%00011110
         sta $2001
 
-waitblank:
-        lda $2002
-        bpl waitblank   ; waits until v is blanked before gfx code
+; Fill In Background
+; Not all emus fill tile with 0
+        lda #$20
+        sta $2006
+        lda #$00        ; skip 64 lines - 2 row.
+        sta $2006
+        lda #0
+        ldx #0
+        ldy #0
+.FillLoop:
+        sta $2007
+        inx
+        cpx #255
+        bne .FillLoop    ; fills screen with tile #20
+        ldx #0
+        iny
+        cpy #3
+        bne .FillLoop
 
+wait_blank:
         lda $2002       ; ?
+        bpl wait_blank
         lda #$3f
         sta $2006       ; 2006 is TARGET BASE vram addr via storing to 2007
         lda #0
@@ -43,22 +60,6 @@ pal_loop:
         inx 
         cpx #32
         bne pal_loop
-
-
-; Fill In Background
-; Not all emus fill tile with 0
-        lda #$20
-        sta $2006
-        lda #$00        ; skip 64 lines - 2 row.
-        sta $2006
-        ldx #0
-        ldy #0
-.FillLoop:
-        sty $2007
-        inx
-        cpx #255
-        bne .FillLoop    ; fills screen with tile #20
-
 
 
         lda #$23
@@ -74,12 +75,13 @@ pal_loop:
         bcc .color_bg_loop
 
 loop:
+        lda $2002
+        bpl loop
         jsr DrawLoop
         jmp loop
 
 DrawLoop:
-        lda $2002
-        bpl DrawLoop
+        
         ; wait for vblank
         ; draw all sprites:
         ldx #0
