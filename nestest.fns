@@ -1,8 +1,11 @@
 ; nestest.asm
 Start                            = $8000
+frame_counter                    = $0002
 player_x                         = $0000
 player_y                         = $0001
-PalData                          = $815F
+PalData                          = $811D
 pal_loop                         = $8035
-DrawLoop                         = $8066
+DrawLoop                         = $8098
+animation_offset                 = $0004
 loop                             = $805B
+animation_ticker                 = $0003

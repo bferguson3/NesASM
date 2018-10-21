@@ -16,8 +16,11 @@
 ; $0400-$07FF	1024 bytes	Arrays and less-often-accessed global variables
 
  .org $0000
-player_x: .db 0 
+player_x: .db 100
 player_y: .db 0
+frame_counter: .db 0
+animation_ticker: .db 0
+animation_offset: .db 2 
 
  .org $8000 ; goes in 8k.
 
@@ -76,10 +79,36 @@ pal_loop:
         sta $2001
 
 loop:
+
         lda $2002
-        bpl loop
-        jsr DrawLoop
+        bpl loop                ; wait for vblank
+
+        inc frame_counter
+        lda frame_counter
+        cmp #60
+        bcc .skip_f
+        lda #0
+        sta frame_counter       ; count which frame we're on
+.skip_f:  inc animation_ticker
+        lda animation_ticker
+        cmp #15                 ; reset animation ticker every 15 frames
+        bcc .skip_a 
+        lda #0 
+        sta animation_ticker
+        lda animation_offset
+        cmp #2
+        bcc .set_2
+        lda #0
+        sta animation_offset
+        jmp .skip_a
+.set_2: lda #2
+        sta animation_offset    ; toggle it between 2<>0
+.skip_a:  
+        
+        jsr DrawLoop            ; vblank draw routines
+        
         jmp loop
+
 
 DrawLoop:
         ; draw all sprites:
@@ -88,11 +117,14 @@ DrawLoop:
         stx $2003       ; set 2004 target to spr-ram 0000 (set by ppu flag to either 0000 or 1000)
 
         inc player_y
-        inc player_x
-        
+        lda #100
+        sta player_x
+
         lda player_y
         sta $2004       ; y-addr
-        lda #0
+        lda #$4
+        clc 
+        adc animation_offset
         sta $2004       ; tile no
         lda #%00000000
         sta $2004       ; color bit 
@@ -101,7 +133,9 @@ DrawLoop:
 
         lda player_y 
         sta $2004
-        lda #1
+        lda #$5
+        clc 
+        adc animation_offset
         sta $2004
         lda #0
         sta $2004
@@ -110,22 +144,13 @@ DrawLoop:
         adc #8
         sta $2004
 
-        lda player_y 
-        sta $2004
-        lda #2
-        sta $2004
-        lda #0
-        sta $2004
-        lda player_x
-        clc 
-        adc #16
-        sta $2004
-
         lda player_y
         clc 
         adc #8 
         sta $2004
-        lda #$10
+        lda #$14
+        clc 
+        adc animation_offset
         sta $2004
         lda #0
         sta $2004
@@ -136,7 +161,9 @@ DrawLoop:
         clc 
         adc #8 
         sta $2004
-        lda #$11
+        lda #$15
+        clc 
+        adc animation_offset
         sta $2004
         lda #0
         sta $2004
@@ -145,57 +172,7 @@ DrawLoop:
         adc #8
         sta $2004
 
-        lda player_y
-        clc 
-        adc #8 
-        sta $2004
-        lda #$12
-        sta $2004
-        lda #0
-        sta $2004
-        lda player_x
-        clc
-        adc #16
-        sta $2004
-
-        lda player_y
-        clc 
-        adc #16 
-        sta $2004
-        lda #$20
-        sta $2004
-        lda #0
-        sta $2004
-        lda player_x
-        sta $2004
-
-        lda player_y
-        clc 
-        adc #16 
-        sta $2004
-        lda #$21
-        sta $2004
-        lda #0
-        sta $2004
-        lda player_x
-        clc 
-        adc #8
-        sta $2004
-
-        lda player_y
-        clc 
-        adc #16 
-        sta $2004
-        lda #$22
-        sta $2004
-        lda #0
-        sta $2004
-        lda player_x
-        clc 
-        adc #16
-        sta $2004
-        
-        rts 
+        rts
 
 PalData: 
  .incbin "output.pal"
