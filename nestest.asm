@@ -21,6 +21,9 @@ player_y: .db 0
 frame_counter: .db 0
 animation_ticker: .db 0
 animation_offset: .db 2 
+joy_byte: .db 0
+p1_anm_dir_offset: .db 0
+player_moving: .db 0 
 
  .org $8000 ; goes in 8k.
 
@@ -29,24 +32,47 @@ Start:  lda #%00001000  ; NMI off, PPU master, sprite 8x8, bg $0000, sprite $000
         lda #0
         sta $2001       ; disable screen rendering
         
+; Misc Setup Code 
+        lda #2
+        sta p1_anm_dir_offset
+
 ; Fill In Background
 ; Not all emus fill tile with 0
         lda #$20
         sta $2006
         lda #$00        ; skip 64 lines - 2 row.
         sta $2006
-        lda #0
         ldx #0
-        ldy #0
 .FillLoop:
+        lda MapData,x 
         sta $2007
         inx
         cpx #255
         bne .FillLoop    ; fills screen with tile #20
+        
         ldx #0
-        iny
-        cpy #3
-        bne .FillLoop
+.FillLoop2:
+        lda MapData+256,x
+        sta $2007 
+        inx 
+        cpx #255 
+        bne .FillLoop2
+
+        ldx #0
+.FillLoop3:
+        lda MapData+512,x
+        sta $2007 
+        inx 
+        cpx #255 
+        bne .FillLoop3
+
+        ldx #0
+.fillloop4:
+        lda MapData+(256*3),x 
+        sta $2007 
+        inx 
+        cpx #$c0
+        bne .fillloop4
 
         lda #$3f
         sta $2006       ; 2006 is TARGET BASE vram addr via storing to 2007
@@ -67,8 +93,8 @@ pal_loop:
         lda #$c0
         sta $2006
         ldx #0
-        lda #%00011011
 .color_bg_loop:
+        lda MapAttr,x
         sta $2007
         inx 
         cpx #64
@@ -78,7 +104,13 @@ pal_loop:
         lda #%00011110
         sta $2001
 
+
+
+;;;;;;;;;;;;;;;;;;;;
+;; GAME loop
+
 loop:
+           
 
         lda $2002
         bpl loop                ; wait for vblank
@@ -89,7 +121,23 @@ loop:
         bcc .skip_f
         lda #0
         sta frame_counter       ; count which frame we're on
-.skip_f:  inc animation_ticker
+.skip_f: 
+        inc animation_ticker
+        lda player_moving
+        cmp #1
+        bcs .fast_walk
+        lda animation_ticker 
+        cmp #30 
+        bcc .skip_a 
+        lda #0 
+        sta animation_ticker
+        lda animation_offset 
+        cmp #2 
+        bcc .set_2
+        lda #0 
+        sta animation_offset
+        jmp .skip_a
+.fast_walk:
         lda animation_ticker
         cmp #15                 ; reset animation ticker every 15 frames
         bcc .skip_a 
@@ -103,12 +151,80 @@ loop:
         jmp .skip_a
 .set_2: lda #2
         sta animation_offset    ; toggle it between 2<>0
-.skip_a:  
-        
+.skip_a:
+
+        jsr CheckInput  
         jsr DrawLoop            ; vblank draw routines
-        
+        jsr CheckButtons
+
         jmp loop
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Input Code 
+
+CheckButtons:
+        lda #%00001000
+        bit joy_byte
+        bne .up_pressed
+        lda #%00000100
+        bit joy_byte
+        bne .down_pressed
+        lda #%00000010
+        bit joy_byte
+        bne .left_pressed 
+        lda #%00000001
+        bit joy_byte
+        bne .right_pressed 
+        lda #0
+        sta player_moving
+        rts 
+.left_pressed:
+        dec player_x
+        lda #1 
+        sta player_moving
+        lda #8 
+        sta p1_anm_dir_offset
+        rts
+.right_pressed: 
+        inc player_x
+        lda #1 
+        sta player_moving
+        lda #12
+        sta p1_anm_dir_offset
+        rts
+.up_pressed:
+        dec player_y
+        lda #1
+        sta player_moving
+        lda #0
+        sta p1_anm_dir_offset
+        rts 
+.down_pressed:
+        lda #4 
+        sta p1_anm_dir_offset
+        sta player_moving
+        inc player_y
+        rts
+
+CheckInput:
+        ; strobe pad 1
+        lda #$01
+        sta $4016
+        sta joy_byte
+        lsr a 
+        sta $4016
+.checkinput_loop:
+        lda $4016
+        lsr a
+        rol joy_byte
+        bcc .checkinput_loop
+        rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;; VBlank Draws 
+;; warning - only 6800 cycles until vset.
 
 DrawLoop:
         ; draw all sprites:
@@ -116,15 +232,12 @@ DrawLoop:
         stx $2003
         stx $2003       ; set 2004 target to spr-ram 0000 (set by ppu flag to either 0000 or 1000)
 
-        inc player_y
-        lda #100
-        sta player_x
-
         lda player_y
         sta $2004       ; y-addr
-        lda #$4
+        lda #$0
         clc 
         adc animation_offset
+        adc p1_anm_dir_offset
         sta $2004       ; tile no
         lda #%00000000
         sta $2004       ; color bit 
@@ -133,9 +246,10 @@ DrawLoop:
 
         lda player_y 
         sta $2004
-        lda #$5
+        lda #$1
         clc 
         adc animation_offset
+        adc p1_anm_dir_offset
         sta $2004
         lda #0
         sta $2004
@@ -148,9 +262,10 @@ DrawLoop:
         clc 
         adc #8 
         sta $2004
-        lda #$14
+        lda #$10
         clc 
         adc animation_offset
+        adc p1_anm_dir_offset
         sta $2004
         lda #0
         sta $2004
@@ -161,9 +276,10 @@ DrawLoop:
         clc 
         adc #8 
         sta $2004
-        lda #$15
+        lda #$11
         clc 
         adc animation_offset
+        adc p1_anm_dir_offset
         sta $2004
         lda #0
         sta $2004
@@ -176,6 +292,10 @@ DrawLoop:
 
 PalData: 
  .incbin "output.pal"
+MapData:
+ .incbin "output.nam"
+MapAttr:
+ .incbin "output.atr"
 
  .bank 1 
 

@@ -3,3 +3,5 @@
 nespal.py
 nesPalette.py
 nesPalette.txt
+*.json
+chr000.bmp

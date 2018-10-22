@@ -1,11 +1,18 @@
 ; nestest.asm
+MapAttr                          = $85BC
 Start                            = $8000
 frame_counter                    = $0002
 player_x                         = $0000
 player_y                         = $0001
-PalData                          = $811D
-pal_loop                         = $8035
-DrawLoop                         = $8098
+PalData                          = $81DC
+pal_loop                         = $8059
+player_moving                    = $0007
+DrawLoop                         = $8153
 animation_offset                 = $0004
-loop                             = $805B
+loop                             = $8080
+joy_byte                         = $0005
+CheckInput                       = $813D
 animation_ticker                 = $0003
+CheckButtons                     = $80E5
+p1_anm_dir_offset                = $0006
+MapData                          = $81FC
