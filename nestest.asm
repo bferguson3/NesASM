@@ -16,25 +16,32 @@
 ; $0400-$07FF	1024 bytes	Arrays and less-often-accessed global variables
 
  .org $0000
-player_x: .db 100
+player_x: .db 0
 player_y: .db 0
 frame_counter: .db 0
 animation_ticker: .db 0
-animation_offset: .db 2 
+animation_offset: .db 0
 joy_byte: .db 0
 p1_anm_dir_offset: .db 0
 player_moving: .db 0 
+        ; NES resolution is 256x240.
 
  .org $8000 ; goes in 8k.
 
-Start:  lda #%00001000  ; NMI off, PPU master, sprite 8x8, bg $0000, sprite $0000, ppu inc 0, nametable $2000
+Start:  lda $2002
+        lda #%00001000  ; NMI off, PPU master, sprite 8x8, bg $0000, sprite $0000, ppu inc 0, nametable $2000
         sta $2000
         lda #0
         sta $2001       ; disable screen rendering
         
 ; Misc Setup Code 
-        lda #2
+        lda #4
         sta p1_anm_dir_offset
+        lda #2
+        sta animation_offset
+        lda #124
+        sta player_x 
+        sta player_y 
 
 ; Fill In Background
 ; Not all emus fill tile with 0
@@ -203,6 +210,7 @@ CheckButtons:
 .down_pressed:
         lda #4 
         sta p1_anm_dir_offset
+        lda #1
         sta player_moving
         inc player_y
         rts
@@ -231,7 +239,8 @@ DrawLoop:
         ldx #0
         stx $2003
         stx $2003       ; set 2004 target to spr-ram 0000 (set by ppu flag to either 0000 or 1000)
-
+        
+        ; HERO SPRITE (2x2)
         lda player_y
         sta $2004       ; y-addr
         lda #$0
@@ -287,6 +296,7 @@ DrawLoop:
         clc
         adc #8
         sta $2004
+        ; end hero sprite
 
         rts
 
