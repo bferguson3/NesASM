@@ -1,6 +1,6 @@
- .inesprg 1 ; 1 bank of 16kb data
- .ineschr 1 ; 1 bank of 8kb chr data 
- .inesmap 1 ; MMC1, 8kb vram + 2x16kb rom
+ .inesprg 1 ; 1 bank of 16kb data (banks 0-1)
+ .ineschr 1 ; 1 bank of 8kb chr data (bank 2)
+ .inesmap 1 ; MMC1
  .inesmir 0 ; 0=up and down, 1=left/right
 
 
@@ -30,9 +30,9 @@ PPUSTATUS EQU $2002
  .bank 0
 
  .org $0000
-; zp vars/clobbers 
+    ; zp vars/clobbers 
  .org $0010
-; globals 
+    ; globals 
 
  .org $8000 ; code bank start
 boot_wait:
@@ -50,7 +50,7 @@ boot_wait:
 .vwait1:
     bit PPUSTATUS 
     bpl .vwait1 
-; clear memory in between first and second frame 
+    ; clear memory in between first and second frame 
     txa 
 .clrmem:
     sta $000,x 
@@ -85,11 +85,14 @@ loop:
 vblank:
     rti 
 
- .bank 1 
+brk_vec:
+    rti 
 
- .org $fffa ; location of interrupt
- .dw vblank      ; nmi vec  
- .dw boot_wait   ; reset vec
- .dw 0           ; irq/brk vec
+ .bank 1        ; prg bank 1, section 2
+                ; this is seperated out for ease of .organizing the irq vectors.
+ .org $fffa     ; location of interrupt
+ .dw vblank     ; nmi vec  
+ .dw boot_wait  ; reset vec
+ .dw brk_vec    ; irq/brk vec
 
  .bank 2 ; chr bank

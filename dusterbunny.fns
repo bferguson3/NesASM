@@ -1,5 +1,6 @@
 ; dusterbunny.asm
-vblank                           = $8021
-init                             = $800F
+vblank                           = $8042
+brk_vec                          = $8043
+init                             = $8035
 boot_wait                        = $8000
-loop                             = $801E
+loop                             = $803F
