@@ -1,5 +1,5 @@
- .inesprg 1 ; 1 bank of 16kb data (banks 0-1)
- .ineschr 1 ; 1 bank of 8kb chr data (bank 2)
+ .inesprg 2 ; 2 bank of 16kb data (banks 0-3)
+ .ineschr 2 ; 2 bank of 8kb chr data (bank 4-5)
  .inesmap 1 ; MMC1
  .inesmir 0 ; 0=up and down, 1=left/right
 
@@ -19,9 +19,15 @@
 ; $2008-$3fff   (mirror)
 ; $4000-$4017   18 bytes    APU / IO registers 
 ; $4018-$401f   (test mode) 
-; $6000-$7fff   8 kb        battery backup or wram
-; $8000-$fff9   ~32 kb      normal ROM 
-; $fffa-$ffff   6 bytes     irq vectors 
+; $4020-$5fff               expansion ROM
+
+; MMC1 bank map:
+; $6000-$7fff   8 kb        WRAM
+; $8000-$bfff   16 kb       PRG-ROM bank
+; $c000-$fff9   16 kb       PRG-ROM bank 
+; $fffa-$ffff   6 by        IRQ vectors 
+; (PPU) $0000-$0fff 4kb     CHR-ROM bank 
+; (PPU) $1000-$1fff 4kb     CHR-ROM bank
 
 PPUCTRL EQU $2000
 PPUMASK EQU $2001
@@ -88,11 +94,11 @@ vblank:
 brk_vec:
     rti 
 
- .bank 1        ; prg bank 1, section 2
+ .bank 3        ; prg bank 2, section b
                 ; this is seperated out for ease of .organizing the irq vectors.
  .org $fffa     ; location of interrupt
  .dw vblank     ; nmi vec  
  .dw boot_wait  ; reset vec
  .dw brk_vec    ; irq/brk vec
 
- .bank 2 ; chr bank
+ .bank 4        ; chr bank 1 of 2
