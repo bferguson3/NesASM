@@ -3,7 +3,7 @@
  .inesmap 1 ; MMC1, 8kb vram + 2x16kb rom
  .inesmir 0 ; 0=up and down, 1=left/right
 
-  .bank 0 ; PRG bank 0
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NES MEMORY MAP EXAMPLE 8 PAGE RAM:
 ;
@@ -14,6 +14,12 @@
 ; $0200-$02FF	256 bytes	Data to be copied to OAM during next vertical blank
 ; $0300-$03FF	256 bytes	Variables used by sound player, and possibly other variables
 ; $0400-$07FF	1024 bytes	Arrays and less-often-accessed global variables
+
+PPUCTRL = $2000
+PPUMASK = $2001
+PPUSTATUS = $2002
+
+ .bank 0
 
  .org $0000
 ; zp vars/clobbers 
@@ -34,6 +40,12 @@ boot_wait:
     ; 50k cycles done, proceed to init
 
 init:
+    lda #%10001000
+    ; NMI ON | PPU MASTER | SPRITE 8x8 | BG@$0000 | Sprites@$1000 | VRAM add 1 | Nametable@$2000
+    sta PPUCTRL
+    lda #%00011110
+    ; RGB no emphasis | Show Spr | Show BG | Left sprite column on | Left bg column on | Greyscale off
+    sta PPUMASK
 
 loop:
     jmp loop
