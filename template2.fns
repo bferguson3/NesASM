@@ -1,0 +1,5 @@
+; template2.asm
+vblank                           = $801C
+init                             = $800F
+boot_wait                        = $8000
+loop                             = $8019
