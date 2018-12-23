@@ -1,6 +1,10 @@
 ; dusterbunny.asm
-vblank                           = $8042
-brk_vec                          = $8043
-init                             = $8035
+vblank                           = $80DB
+PalData                          = $80DD
+brk_vec                          = $80DC
+init                             = $806F
 boot_wait                        = $8000
-loop                             = $803F
+NamData                          = $80FD
+loop                             = $80D8
+configure_MMC1                   = $8034
+AtrData                          = $84BD

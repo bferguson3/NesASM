@@ -1,0 +1,5 @@
+; db-bust.asm
+vblank                           = $801C
+ppu_startup                      = $8000
+init                             = $800F
+loop                             = $8019

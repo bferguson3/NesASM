@@ -47,7 +47,7 @@ Start:  lda $2002
 ; Not all emus fill tile with 0
         lda #$20
         sta $2006
-        lda #$00        ; skip 64 lines - 2 row.
+        lda #$00        ; skip 64 lines - 2 row. vram addr set to 2000
         sta $2006
         ldx #0
 .FillLoop:
